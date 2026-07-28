@@ -25,6 +25,6 @@
 ## 🔗 Результаты работы
 
 * 📈 **[ОТКРЫТЬ ИНТЕРАКТИВНЫЙ ДАШБОРД В DATALENS](https://datalens.yandex/lp7ff9e2d8665)**
-* 💻 **[ПОСМОРЕТЬ ИССЛЕДОВАТЕЛЬСКИЙ КОД PYTHON](./yandex_afisha.ipynb)**
+* 💻 **[ПОСМОРЕТЬ ИССЛЕДОВАТЕЛЬСКИЙ КОД PYTHON](./afisha_analytics.ipynb)**
 
 <img width="3374" height="1216" alt="image" src="https://github.com/user-attachments/assets/3249bf7b-5f9c-4230-b872-7069a62f46e1" />
