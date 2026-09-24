@@ -26,7 +26,7 @@ FROM fantasy.users) AS all_users;
 SELECT race,
 		COUNT(id) AS total_users,
 		SUM(payer) AS payer_users,
-		CAST(SUM(payer) AS float) / COUNT(id) AS share_race_payers
+		ROUND((CAST(SUM(payer) AS numeric) / COUNT(id)) * 100, 2) AS share_race_payers
 FROM fantasy.users AS u
 LEFT JOIN fantasy.race AS r USING (race_id)
 GROUP BY race
