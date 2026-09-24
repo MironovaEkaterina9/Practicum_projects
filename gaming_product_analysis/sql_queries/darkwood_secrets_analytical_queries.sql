@@ -16,7 +16,7 @@
 
 SELECT total_users,
 		payer_users,
-		CAST(payer_users AS float) / total_users  AS share_of_payers
+		ROUND((CAST(payer_users AS numeric) / total_users) * 100, 2)  AS share_of_payers_pct
 FROM (SELECT COUNT(id) AS total_users,
 		(SELECT COUNT(id) FROM fantasy.users WHERE payer = 1) AS payer_users
 FROM fantasy.users) AS all_users; 
