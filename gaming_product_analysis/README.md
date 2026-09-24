@@ -95,4 +95,4 @@
 ---
 
 ## 📄 Ссылки на файлы проекта
-* 📁 [Посмотреть чистый и оптимизированный SQL-код в репозитории](sql_queries/analytical_queries.sql)
+* 📁 [Посмотреть SQL-код в репозитории](sql_queries/darkwood_secrets_analytical_queries.sql)
