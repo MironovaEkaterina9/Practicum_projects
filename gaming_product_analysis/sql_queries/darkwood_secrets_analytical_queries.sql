@@ -16,27 +16,33 @@
 
 SELECT total_users,
 		payer_users,
-		ROUND((CAST(payer_users AS numeric) / total_users) * 100, 2)  AS share_of_payers_pct
+		ROUND((payer_users::numeric / total_users) * 100, 2)  AS payers_pct
 FROM (SELECT COUNT(id) AS total_users,
 		(SELECT COUNT(id) FROM fantasy.users WHERE payer = 1) AS payer_users
-FROM fantasy.users) AS all_users; 
+FROM fantasy.users) AS all_users;  
 
 -- 1.2. Расчет конверсии в платящего игрока в разрезе рас персонажей:
 
 SELECT race,
 		COUNT(id) AS total_users,
 		SUM(payer) AS payer_users,
-		ROUND((CAST(SUM(payer) AS numeric) / COUNT(id)) * 100, 2) AS share_race_payers
+		ROUND((SUM(payer)::numeric / COUNT(id)) * 100, 2) AS race_payers_pct
 FROM fantasy.users AS u
 LEFT JOIN fantasy.race AS r USING (race_id)
 GROUP BY race
-ORDER BY share_race_payers DESC;
+ORDER BY race_payers_pct DESC;
 
 -- ----------------------------------------------------------------------------
 -- Задача 2. Исследование внутриигровых покупок и эпических предметов
 -- ----------------------------------------------------------------------------
 
 -- 2.1. Сравнительный анализ описательной статистики (с нулевыми покупками и без):
+
+-- Абсолютное и относительное кол-во нулевых покупок
+SELECT 
+    COUNT(CASE WHEN amount = 0 THEN 1 END) AS zero_amount_count,
+    ROUND(COUNT(CASE WHEN amount = 0 THEN 1 END) * 100.0 / COUNT(*), 2) AS zero_amount_pct
+FROM fantasy.events;
 
 SELECT 'with 0 amount' AS category,
 		COUNT(amount) AS total_amount,
