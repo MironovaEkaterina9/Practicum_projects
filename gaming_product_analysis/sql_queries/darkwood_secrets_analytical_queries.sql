@@ -44,7 +44,8 @@ SELECT
     ROUND(COUNT(CASE WHEN amount = 0 THEN 1 END) * 100.0 / COUNT(*), 2) AS zero_amount_pct
 FROM fantasy.events;
 
-SELECT 'with 0 amount' AS category,
+-- Сравнительный анализ описательной статистики (с нулевыми покупками и без)
+SELECT 'with zero amount' AS category,
 		COUNT(amount) AS total_amount,
 		SUM(amount) AS sum_amount,
 		MIN(amount) AS min_amount,
@@ -54,7 +55,7 @@ SELECT 'with 0 amount' AS category,
 		STDDEV(amount) AS stand_dev
 FROM fantasy.events
 UNION ALL
-SELECT 'without 0 amount' AS category,
+SELECT 'without zero amount' AS category,
 		COUNT(amount) AS total_amount,
 		SUM(amount) AS sum_amount,
 		MIN(amount) AS min_amount,
@@ -69,43 +70,41 @@ WHERE amount > 0;
 
 SELECT race,
 		item_code,
-		COUNT(*) AS total_0_amount,
-		CAST(COUNT(*) AS float) / (SELECT COUNT(*) FROM fantasy.events) * 100 AS share_0_amount
+		COUNT(*) AS total_zero_amount,
+		COUNT(*)::float / (SELECT COUNT(*) FROM fantasy.events) * 100 AS zero_amount_pct
 FROM fantasy.events AS e
 LEFT JOIN fantasy.users AS u USING (id)
 LEFT JOIN fantasy.race AS r USING (race_id)
 WHERE amount = 0
 GROUP BY race, item_code
-ORDER BY total_0_amount DESC;
+ORDER BY total_zero_amount DESC;
 
 -- 2.3: Формирование рейтинга популярности и востребованности эпических предметов (исключая нулевые покупки):
 
 WITH
 -- Считаем долю уникальных покупателей для каждого предмета
 item_buyers AS (
-	SELECT item_code AS unique_item,
-			i.game_items,
-			CAST(COUNT(DISTINCT id) AS float) / (SELECT COUNT(DISTINCT id) FROM fantasy.events WHERE amount > 0) AS share_item_buyers	
+	SELECT DISTINCT item_code AS unique_item,
+			CAST (COUNT (DISTINCT id) AS float) / (SELECT COUNT (DISTINCT id) FROM fantasy.events WHERE amount > 0) AS share_item_buyers	
 	FROM fantasy.events AS e
-	LEFT JOIN fantasy.items AS i USING (item_code)
 	WHERE amount > 0
-	GROUP BY item_code, i.game_items
+	GROUP BY item_code
 			)
-			
+	
 SELECT poi.unique_item,
-		ib.game_items,
-		poi.total_transaction_item,
-		CAST(poi.total_transaction_item AS float) / poi.total_transaction AS share_total_transaction_item,
-		ib.share_item_buyers
-FROM (
-	  SELECT item_code AS unique_item,
-		SUM(COUNT(transaction_id)) OVER() AS total_transaction,
-		COUNT(transaction_id)  AS total_transaction_item
+		i.game_items AS item_name,
+		poi.item_sales,
+		ROUND(poi.item_sales::numeric / poi.total_transaction * 100, 2) AS item_sales_pct,
+		ROUND(ib.share_item_buyers::numeric * 100, 2) AS item_buyers_pct
+FROM (SELECT DISTINCT item_code AS unique_item,
+		COUNT (transaction_id) OVER (PARTITION BY item_code) AS item_sales,
+		COUNT (transaction_id) OVER () AS total_transaction
 	  FROM fantasy.events
-	  WHERE amount > 0
-	  GROUP BY item_code ) AS poi
+	  WHERE amount > 0) AS poi
+LEFT JOIN fantasy.items AS i ON i.item_code = poi.unique_item
 INNER JOIN item_buyers AS ib ON ib.unique_item = poi.unique_item
-ORDER BY share_item_buyers DESC;
+ORDER BY item_buyers_pct DESC
+LIMIT 10;
 
 -- ============================================================================
 -- Часть 2. Решение ad hoc-задачи
