@@ -153,22 +153,22 @@ metrics_race AS (
 	GROUP BY u.race_id
 )
 -- Финальное объединение метрик
-SELECT r.race AS "Раса персонажа",
-       tru.race_users AS "Зарегистрировано игроков",
-       br.buyer_users AS "Количество покупателей",
+SELECT r.race,
+       tru.race_users,
+       br.buyer_users,
        -- Доля покупателей от зарегистрированных:
-       ROUND(br.buyer_users::numeric / tru.race_users, 4) AS "Доля покупателей",
+       ROUND(br.buyer_users::numeric / tru.race_users * 100, 2) AS buyer_users_pct,
        -- Доля платящих игроков среди покупателей:
-       ROUND(pr.payer_users::numeric / br.buyer_users, 4) AS "Доля платящих среди покупателей",
+       ROUND(pr.payer_users::numeric / br.buyer_users * 100, 2) AS payer_buyer_pct,
        -- Среднее количество покупок на одного покупателя:
-       ROUND(mr.total_trans::numeric / mr.unique_buyers, 4) AS "Среднее кол-во покупок",
+       ROUND(mr.total_trans::numeric / mr.unique_buyers, 2) AS purchases_per_buyer,
        -- Средняя стоимость одной покупки (средний чек транзакции):
-       ROUND(mr.total_amount::numeric / mr.total_trans, 4) AS "Средняя стоимость покупки",
+       ROUND(mr.total_amount::numeric / mr.total_trans, 2) AS avg_order_value,
        -- Средняя суммарная стоимость всех покупок на одного покупателя:
-       ROUND(mr.total_amount::numeric / mr.unique_buyers, 4) AS "Средние суммарные траты"
+       ROUND(mr.total_amount::numeric / mr.unique_buyers, 2) AS avg_revenue_per_buyer
 FROM total_race_users AS tru
 LEFT JOIN buyer_race AS br USING (race_id)
 LEFT JOIN payer_race AS pr USING (race_id)
 LEFT JOIN metrics_race AS mr USING (race_id)
 LEFT JOIN fantasy.race AS r USING (race_id)
-ORDER BY "Доля платящих среди покупателей" DESC;
+ORDER BY payer_buyer_pct DESC;
